@@ -1,0 +1,11 @@
+{{ define "main" }}
+  {{ partial "gallery/title.html" . }}
+  {{ partial "gallery/gallery.html" . }}
+  {{ partial "gallery/related.html" . }}
+  {{ with .Content }}
+    <section class="prose">
+      {{ . }}
+    </section>
+  {{ end }}
+  {{ $params := dict }}
+{{ end }}

@@ -1,0 +1,21 @@
+baseURL: "/"
+languageCode: "en-us"
+title: "Zhihao Wang"
+theme: "PaperMod"
+
+menu:
+  main:
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 10
+
+    - identifier: gallery
+      name: Gallery
+      url: /gallery/
+      weight: 30
+
+params:
+  homeInfoParams:
+    Title: "Hi there 👋"
+    Content: "Welcome to my homepage built with Hugo PaperMod."
