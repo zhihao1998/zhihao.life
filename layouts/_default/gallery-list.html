@@ -1,0 +1,13 @@
+{{ define "main" }}
+  <style>
+    .main {
+      max-width: none !important;
+      width: 100% !important;
+    }
+  </style>
+  <section class="galleries">
+    {{ range where .Pages "Params.private" "ne" true }}
+      {{ partial "album-card.html" . }}
+    {{ end }}
+  </section>
+{{ end }}

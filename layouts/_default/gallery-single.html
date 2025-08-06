@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <style>
+    .main {
+      max-width: none !important;
+      width: 100% !important;
+    }
+  </style>
+  {{ if .Title }}
+  <hgroup>
+    <h1>{{ .Title }}</h1>
+    {{ with .Params.Description }}
+      <p>{{ . | markdownify }}</p>
+    {{ end }}
+  </hgroup>
+  {{ end }}
+
+  {{ partial "gallery.html" . }}
+  {{/*  {{ partial "gallery/related.html" . }}  */}}
+  {{ with .Content }}
+    <section class="prose">
+      {{ . }}
+    </section>
+  {{ end }}
+  {{ $params := dict }}
+{{ end }}
