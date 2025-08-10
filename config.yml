@@ -43,6 +43,9 @@ languages:
         - name: Portfolio
           url: portfolio/
           weight: 10
+        - name: Reel
+          url: videos
+          weight: 11
 
   # cn:
   #   languageName: "中文"
@@ -107,7 +110,7 @@ params:
 
   profileMode:
     enabled: true
-    title: Zhihao Wang
+    title: Hi
     # imageUrl: "gallery/20250608-malmo/DSC05602.jpg"
     # imageTitle: my image
     # imageWidth: 120
@@ -118,16 +121,14 @@ params:
     #   - name: Tags
     #     url: tags
 
-  # homeInfoParams:
-  #   Title: "PaperMod's Demo"
-  #   Content: >
-  #     👋 Welcome to demo page of Hugo's theme PaperMod!
+  homeInfoParams:
+    Title: "PaperMod's Demo"
+    Content: >
+      I am **Zhihao Wang**, a joint Ph.D. student at the University of Electronic Science and Technology of China and Politecnico di Torino, Italy.  
+      My research focuses on **intent-driven network telemetry**, **programmable networks**, and **AI-assisted network anomaly detection and response**.  
+      I am particularly interested in exploring how **large language model (LLM)-driven AI agents** can enhance network troubleshooting and automation.  
+      My work has been published in top venues such as *IEEE Transactions on Mobile Computing*, *IEEE Internet of Things Journal*, and presented at **IEEE ICC**, **INFOCOM Workshops**, and **SIGCOMM NGNO Workshop**.
 
-  #     - **PaperMod**  is designed to be clean and simple but fast and responsive theme with useful feature-set that enhances UX.
-
-  #     - Feel free to show your support by giving us a star 🌟 on GitHub and sharing with your friends and social media .
-
-  #     - PaperMod is based on theme [Paper](https://github.com/nanxiaobei/hugo-paper/tree/4330c8b12aa48bfdecbcad6ad66145f679a430b3).
 
   socialIcons:
     - name: github
