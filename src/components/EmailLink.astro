@@ -1,0 +1,39 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  class?: string;
+  /** Visible label; defaults to obfuscated address. */
+  label?: string;
+}
+
+const { class: className = '', label } = Astro.props;
+const display = label ?? `${site.emailUser} [at] ${site.emailDomain}`;
+---
+
+<a
+  class:list={['email-link', className]}
+  href="#"
+  data-user={site.emailUser}
+  data-domain={site.emailDomain}
+  >{display}</a
+>
+
+<script>
+  function bindEmailLinks() {
+    document.querySelectorAll<HTMLAnchorElement>('a.email-link[data-user][data-domain]').forEach((el) => {
+      if (el.dataset.bound === '1') return;
+      el.dataset.bound = '1';
+      el.addEventListener('click', (event) => {
+        event.preventDefault();
+        const user = el.dataset.user;
+        const domain = el.dataset.domain;
+        if (!user || !domain) return;
+        window.location.href = `mailto:${user}@${domain}`;
+      });
+    });
+  }
+
+  bindEmailLinks();
+  document.addEventListener('astro:page-load', bindEmailLinks);
+</script>

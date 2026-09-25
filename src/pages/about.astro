@@ -1,0 +1,191 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Bio from '../components/Bio.astro';
+import EmailLink from '../components/EmailLink.astro';
+import { about } from '../data/about';
+import { site } from '../data/site';
+
+function placeParts(item: { place: string; placeUrl?: string; placeLink?: string }) {
+  if (item.placeUrl && item.placeLink && item.place.startsWith(item.placeLink)) {
+    return {
+      linked: item.placeLink,
+      rest: item.place.slice(item.placeLink.length),
+      href: item.placeUrl,
+    };
+  }
+  if (item.placeUrl) {
+    return { linked: item.place, rest: '', href: item.placeUrl };
+  }
+  return { linked: null as string | null, rest: item.place, href: null as string | null };
+}
+---
+
+<BaseLayout title="About" description={`About ${site.name} — education, research, and service.`}>
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-12 w-full min-w-0 max-w-3xl">
+      <h1 class="type-display text-4xl text-ink sm:text-5xl">
+        About
+      </h1>
+      <p class="mt-3 text-xl text-ink-soft sm:text-2xl">
+        {site.name}
+        <span class="text-muted"> · </span>
+        {site.nameZh}
+      </p>
+      <Bio class="mt-6 text-lg text-ink-soft" />
+      <div class="mt-6 flex flex-wrap gap-4 text-sm text-steel">
+        <a class="hover:underline" href={site.links.github}>GitHub</a>
+        <a class="hover:underline" href={site.links.scholar}>Google Scholar</a>
+        <a class="hover:underline" href={site.links.linkedin}>LinkedIn</a>
+        <EmailLink class="hover:underline" />
+      </div>
+    </header>
+
+    <div class="about-body w-full min-w-0 max-w-3xl space-y-12 text-[1.02rem] leading-relaxed text-ink-soft">
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Position</h2>
+        <ul class="space-y-5">
+          {
+            about.positions.map((item) => (
+              <li class="entry space-y-0.5 text-ink">
+                <p class="text-muted">{item.period}</p>
+                <p>
+                  <strong class="font-semibold">{item.role}</strong>
+                </p>
+                <p>
+                  {(() => {
+                    const p = placeParts(item);
+                    return p.href && p.linked ? (
+                      <>
+                        <a class="text-steel hover:underline" href={p.href} target="_blank" rel="noreferrer">
+                          {p.linked}
+                        </a>
+                        {p.rest}
+                      </>
+                    ) : (
+                      p.rest || p.linked
+                    );
+                  })()}
+                </p>
+                {item.advisor && (
+                  <p>
+                    Advisor:{' '}
+                    {item.advisorUrl ? (
+                      <a class="text-steel hover:underline" href={item.advisorUrl} target="_blank" rel="noreferrer">
+                        {item.advisor}
+                      </a>
+                    ) : (
+                      item.advisor
+                    )}
+                  </p>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Education and research visits</h2>
+        <ul class="space-y-5">
+          {
+            about.education.map((item) => (
+              <li class="entry space-y-0.5 text-ink">
+                <p class="text-muted">{item.period}</p>
+                <p>
+                  <strong class="font-semibold">{item.role}</strong>
+                  {item.detail && <span> in {item.detail}</span>}
+                </p>
+                <p>
+                  {(() => {
+                    const p = placeParts(item);
+                    return p.href && p.linked ? (
+                      <>
+                        <a class="text-steel hover:underline" href={p.href} target="_blank" rel="noreferrer">
+                          {p.linked}
+                        </a>
+                        {p.rest}
+                      </>
+                    ) : (
+                      p.rest || p.linked
+                    );
+                  })()}
+                </p>
+                {item.advisor && (
+                  <p>
+                    Advisor:{' '}
+                    {item.advisorUrl ? (
+                      <a class="text-steel hover:underline" href={item.advisorUrl} target="_blank" rel="noreferrer">
+                        {item.advisor}
+                      </a>
+                    ) : (
+                      item.advisor
+                    )}
+                  </p>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Research interests</h2>
+        <p class="text-ink">{about.interests.join(' · ')}.</p>
+      </section>
+
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Awards and grants</h2>
+        <ul class="list-disc space-y-1.5 pl-5 text-ink">
+          {about.awards.map((item) => (
+            <li class="entry">{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Academic & professional activities</h2>
+        <ul class="space-y-5">
+          {
+            about.activities.map((group) => (
+              <li class="entry text-ink">
+                <p class="font-semibold">{group.label}</p>
+                <ul class="mt-2 list-disc space-y-1.5 pl-5 text-ink-soft">
+                  {group.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="type-display mb-4 text-2xl text-ink">Social service</h2>
+        <ul class="space-y-3">
+          {
+            about.service.map((item) => (
+              <li class="entry text-ink">
+                <span class="text-muted">{item.period}</span>
+                <span class="text-muted"> · </span>
+                {item.text}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-body,
+  .entry {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .entry a {
+    overflow-wrap: anywhere;
+  }
+</style>

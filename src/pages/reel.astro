@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import VideoEmbed from '../components/VideoEmbed.astro';
+import { reels } from '../data/reels';
+---
+
+<BaseLayout title="Reel" description="Video work by Zhihao Wang.">
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-10 max-w-2xl">
+      <h1 class="type-display text-4xl text-ink sm:text-5xl">Reel</h1>
+    </header>
+
+    <div class="grid max-w-4xl gap-12">
+      {
+        reels.map((reel) => (
+          <VideoEmbed
+            title={reel.title}
+            provider={reel.provider}
+            id={'id' in reel ? reel.id : undefined}
+            url={'url' in reel ? reel.url : undefined}
+          />
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>

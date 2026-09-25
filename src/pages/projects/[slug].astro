@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { projects, getProject } from '../../data/projects';
+import { newsBySlug } from '../../data/news';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const project = getProject(slug!);
+if (!project) {
+  return Astro.redirect('/projects/');
+}
+
+const updates = newsBySlug(project.news);
+---
+
+<BaseLayout title={project.name} description={project.tagline}>
+  <article class="page-pad py-14 sm:py-20">
+    <header class="mb-10 max-w-3xl">
+      <p class="text-sm text-muted">
+        <a href="/projects/" class="hover:text-ink">Projects</a>
+        <span class="mx-2">/</span>
+        {project.status}
+        <span aria-hidden="true"> · </span>
+        {project.period}
+      </p>
+      <h1 class="type-display mt-3 text-4xl text-ink sm:text-5xl">{project.name}</h1>
+      <p class="mt-4 text-lg text-ink-soft">{project.tagline}</p>
+    </header>
+
+    {
+      project.teaser && (
+        <div class="project-hero mb-10 max-w-4xl">
+          <img
+            src={project.teaser}
+            alt={`${project.name}`}
+            width="960"
+            height="480"
+            loading="eager"
+            decoding="async"
+            class="h-full w-full object-contain"
+          />
+        </div>
+      )
+    }
+
+    <div class="prose-academic max-w-3xl space-y-4">
+      {project.summary.map((p) => <p>{p}</p>)}
+    </div>
+
+    <section class="mt-10 max-w-3xl">
+      <h2 class="type-display text-2xl text-ink">Highlights</h2>
+      <ul class="mt-4 list-disc space-y-2 pl-5 text-ink-soft">
+        {project.highlights.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    {
+      project.venues && project.venues.length > 0 && (
+        <section class="mt-8 max-w-3xl">
+          <h2 class="type-display text-2xl text-ink">Venues</h2>
+          <p class="mt-3 text-ink-soft">{project.venues.join(' · ')}</p>
+        </section>
+      )
+    }
+
+    {
+      project.collaborators && project.collaborators.length > 0 && (
+        <section class="mt-8 max-w-3xl">
+          <h2 class="type-display text-2xl text-ink">Collaborators</h2>
+          <p class="mt-3 text-ink-soft">{project.collaborators.join(' · ')}</p>
+        </section>
+      )
+    }
+
+    <ul class="mt-8 flex flex-wrap gap-4 text-sm text-steel">
+      {
+        project.links.map((link) => (
+          <li>
+            <a class="hover:underline" href={link.href} rel="noopener noreferrer" target="_blank">
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <section class="mt-14 max-w-3xl border-t border-line pt-10">
+      <h2 class="type-display text-2xl text-ink">News</h2>
+      <ul class="mt-6 space-y-6">
+        {
+          updates.map((item) => (
+            <li>
+              <p class="text-sm text-muted">
+                {new Date(item.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </p>
+              <h3 class="mt-1 text-lg font-medium text-ink">
+                <a class="hover:text-steel" href={`/news/${item.slug}/`}>
+                  {item.title}
+                </a>
+              </h3>
+              <p class="mt-1 text-ink-soft">{item.summary}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .project-hero {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--color-line);
+  }
+</style>

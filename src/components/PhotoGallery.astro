@@ -1,0 +1,80 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { AlbumPhoto } from '../data/albums';
+
+interface Props {
+  photos: AlbumPhoto[];
+}
+
+const { photos } = Astro.props;
+
+const slides = await Promise.all(
+  photos.map(async (photo) => {
+    const full = await getImage({
+      src: photo.src,
+      width: 2400,
+      format: 'webp',
+      quality: 85,
+    });
+    return {
+      src: full.src,
+      width: Number(full.attributes.width),
+      height: Number(full.attributes.height),
+      alt: photo.alt,
+    };
+  }),
+);
+---
+
+<div class="pswp-gallery grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3" id="gallery">
+  {
+    photos.map((photo, i) => (
+      <a
+        href={slides[i].src}
+        class="photo-tile aspect-[4/5] cursor-zoom-in"
+        data-pswp-width={slides[i].width}
+        data-pswp-height={slides[i].height}
+        data-cropped="true"
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Open ${photo.alt}`}
+      >
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          widths={[400, 800, 1200]}
+          sizes="(max-width: 768px) 50vw, 33vw"
+          class="h-full w-full object-cover"
+          loading={i < 3 ? 'eager' : 'lazy'}
+        />
+      </a>
+    ))
+  }
+</div>
+
+<script>
+  import PhotoSwipeLightbox from 'photoswipe/lightbox';
+  import 'photoswipe/style.css';
+
+  const gallery = document.querySelector('#gallery');
+  if (gallery instanceof HTMLElement) {
+    const lightbox = new PhotoSwipeLightbox({
+      gallery,
+      children: 'a',
+      pswpModule: () => import('photoswipe'),
+      showHideAnimationType: 'fade',
+      loop: true,
+      wheelToZoom: true,
+      arrowKeys: true,
+      imageClickAction: 'zoom',
+      tapAction: 'toggle-controls',
+      padding: { top: 24, bottom: 24, left: 16, right: 16 },
+    });
+
+    lightbox.on('uiRegister', function () {
+      // default UI already includes arrows, close, zoom, counter
+    });
+
+    lightbox.init();
+  }
+</script>

@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PhotoGallery from '../../components/PhotoGallery.astro';
+import { albums, getAlbum } from '../../data/albums';
+
+export function getStaticPaths() {
+  return albums.map((album) => ({
+    params: { slug: album.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const album = getAlbum(slug!);
+if (!album) {
+  return Astro.redirect('/portfolio/');
+}
+
+const when = album.date
+  ? new Date(album.date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : String(album.year || '');
+---
+
+<BaseLayout
+  title={album.title}
+  description={`${album.title} — ${album.photos.length} photographs (${when}).`}
+>
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-10 max-w-2xl">
+      <p class="text-sm text-muted">
+        <a href="/portfolio/" class="hover:text-ink">Portfolio</a>
+        <span class="mx-2">/</span>
+        {album.title}
+      </p>
+      <h1 class="type-display mt-3 text-4xl text-ink sm:text-5xl">{album.title}</h1>
+      <p class="mt-2 text-muted">
+        {when}
+        <span class="mx-2">·</span>
+        {album.photos.length} photos
+      </p>
+    </header>
+    <PhotoGallery photos={album.photos} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,61 @@
+---
+import { site, type BioPart } from '../data/site';
+
+interface Props {
+  class?: string;
+  linkClass?: string;
+  /** When false, affiliation names render as plain text (e.g. homepage). */
+  linked?: boolean;
+}
+
+const {
+  class: className = '',
+  linkClass = 'text-steel underline-offset-2 hover:underline',
+  linked = true,
+} = Astro.props;
+
+function plain(parts: readonly BioPart[]) {
+  return parts.map((part) => part.value).join('');
+}
+---
+
+<div class:list={['bio-copy w-full min-w-0', className]}>
+  {
+    site.bioParagraphs.map((parts, i) => (
+      <p class:list={['bio-p', i > 0 && 'mt-4']}>
+        {
+          linked
+            ? parts.map((part) =>
+                part.type === 'link' ? (
+                  <a class={linkClass} href={part.href} target="_blank" rel="noreferrer"
+                    >{part.value}</a
+                  >
+                ) : (
+                  part.value
+                ),
+              )
+            : plain(parts)
+        }
+      </p>
+    ))
+  }
+</div>
+
+<style>
+  .bio-copy,
+  .bio-p {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .bio-copy a {
+    display: inline;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+</style>

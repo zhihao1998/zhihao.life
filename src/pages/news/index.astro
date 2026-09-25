@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { news } from '../../data/news';
+---
+
+<BaseLayout title="News" description="Updates from Zhihao Wang.">
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-10">
+      <h1 class="type-display text-4xl text-ink sm:text-5xl">News</h1>
+    </header>
+
+    <ul class="max-w-3xl space-y-8">
+      {
+        news.map((item) => (
+          <li class="border-t border-line pt-6">
+            <p class="text-sm text-muted">
+              {new Date(item.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+              {item.project && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <a class="text-steel hover:underline" href={`/projects/${item.project}/`}>
+                    {item.project === 'nika' ? 'NIKA' : item.project === 'chamaleonet' ? 'ChamaleoNet' : item.project}
+                  </a>
+                </>
+              )}
+            </p>
+            <h2 class="type-display mt-2 text-2xl text-ink">
+              <a class="hover:text-steel" href={`/news/${item.slug}/`}>
+                {item.title}
+              </a>
+            </h2>
+            <p class="mt-2 text-ink-soft">{item.summary}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>

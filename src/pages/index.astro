@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GatewayLinks from '../components/GatewayLinks.astro';
+import FeaturedPhotos from '../components/FeaturedPhotos.astro';
+import PublicationList from '../components/PublicationList.astro';
+import HeroMedia from '../components/HeroMedia.astro';
+import Bio from '../components/Bio.astro';
+import { site } from '../data/site';
+import { albums, heroImages } from '../data/albums';
+import { featuredPublications } from '../data/publications';
+
+const selected = featuredPublications(3);
+const heroAlbum = albums.find((a) =>
+  a.photos.some((p) => heroImages.some((img) => img === p.src)),
+);
+---
+
+<BaseLayout>
+  <section class="relative min-h-[88dvh] overflow-hidden bg-ink text-white">
+    {
+      heroImages.length > 0 && (
+        <HeroMedia
+          images={heroImages}
+          alt={heroAlbum ? `${heroAlbum.title} — landscape` : 'Featured photograph'}
+        />
+      )
+    }
+
+    <div class="page-pad relative z-10 flex min-h-[88dvh] min-w-0 flex-col justify-end pb-12 pt-24 sm:pb-16">
+      <div class="hero-copy w-full min-w-0 max-w-none fade-up">
+        <p class="mb-3 text-sm tracking-wide text-white/80">
+          Postdoctoral Researcher · KAUST
+        </p>
+        <h1 class="type-display text-5xl font-semibold leading-[0.95] text-white sm:text-6xl md:text-7xl">
+          {site.name}
+          <span class="mt-2 block text-[0.55em] font-medium tracking-wide text-white/85 sm:mt-3">
+            {site.nameZh}
+          </span>
+        </h1>
+        <div class="mt-6 w-full min-w-0 text-[1.05rem] leading-relaxed text-white/92 sm:text-lg md:max-w-[52rem]">
+          <Bio linked={false} />
+        </div>
+      </div>
+
+      <div class="mt-10 w-full min-w-0 fade-up-delay">
+        <GatewayLinks />
+      </div>
+    </div>
+  </section>
+
+  <section class="border-t border-line bg-paper-deep/50">
+    <div class="page-pad py-16 sm:py-20">
+      <div class="mb-8 flex items-end justify-between gap-4">
+        <h2 class="type-display text-2xl text-ink sm:text-3xl">Selected publications</h2>
+        <a href="/publications/" class="hidden text-sm text-steel hover:underline sm:inline">
+          View all
+        </a>
+      </div>
+      <PublicationList items={selected} />
+      <a href="/publications/" class="mt-6 inline-block text-sm text-steel hover:underline sm:hidden">
+        View all publications
+      </a>
+    </div>
+  </section>
+
+  {albums.length > 0 && <FeaturedPhotos />}
+</BaseLayout>
+
+<style>
+  .hero-copy {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+</style>

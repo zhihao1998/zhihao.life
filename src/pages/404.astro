@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Not found" description="Page not found.">
+  <div class="page-pad flex min-h-[60dvh] flex-col justify-center py-20">
+    <h1 class="type-display text-5xl text-ink">404</h1>
+    <p class="mt-4 max-w-md text-lg text-muted">
+      This page is not here. Head home or open Publications.
+    </p>
+    <div class="mt-8 flex gap-4 text-sm text-steel">
+      <a class="hover:underline" href="/">Home</a>
+      <a class="hover:underline" href="/publications/">Publications</a>
+    </div>
+  </div>
+</BaseLayout>

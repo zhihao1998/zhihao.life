@@ -1,0 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import type { Album } from '../data/albums';
+
+interface Props {
+  albums: Album[];
+}
+
+const { albums } = Astro.props;
+---
+
+<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+  {
+    albums.map((album) => (
+      <a href={`/portfolio/${album.slug}/`} class="group block">
+        <div class="photo-tile aspect-[4/5]">
+          <Image
+            src={album.cover}
+            alt={`${album.title} cover`}
+            widths={[400, 800]}
+            sizes="(max-width: 640px) 100vw, 33vw"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <div class="mt-3 flex items-baseline justify-between gap-3">
+          <div>
+            <h2 class="type-display text-xl text-ink group-hover:text-steel">{album.title}</h2>
+            <p class="text-sm text-muted">
+              {album.date || album.year}
+            </p>
+          </div>
+          <span class="text-xs text-muted">{album.photos.length} photos</span>
+        </div>
+      </a>
+    ))
+  }
+</div>

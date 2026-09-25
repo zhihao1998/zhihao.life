@@ -1,0 +1,19 @@
+---
+import { site } from '../data/site';
+---
+
+<nav
+  class="flex w-full min-w-0 flex-wrap gap-x-8 gap-y-3 border-t border-white/25 pt-4"
+  aria-label="Section gateways"
+>
+  {
+    site.nav.map((item) => (
+      <a
+        href={item.href}
+        class="type-display text-xl font-semibold text-white transition-colors hover:text-white/85"
+      >
+        {item.label}
+      </a>
+    ))
+  }
+</nav>

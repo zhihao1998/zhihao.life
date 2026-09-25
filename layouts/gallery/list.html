@@ -1,8 +1,0 @@
-{{ define "main" }}
-  {{ partial "gallery/title.html" . }}
-  <section class="galleries">
-    {{ range where .Pages "Params.private" "ne" true }}
-      {{ partial "gallery/album-card.html" . }}
-    {{ end }}
-  </section>
-{{ end }}

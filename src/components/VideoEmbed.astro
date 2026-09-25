@@ -1,0 +1,174 @@
+---
+interface Props {
+  title: string;
+  provider: 'bilibili' | 'youku' | 'wechat';
+  id?: string;
+  url?: string;
+}
+
+const { title, provider, id = '', url } = Astro.props;
+
+const isLinkOnly = provider === 'wechat';
+
+const src = isLinkOnly
+  ? ''
+  : provider === 'bilibili'
+    ? `https://player.bilibili.com/player.html?bvid=${id}&high_quality=1&danmaku=0&autoplay=1`
+    : `https://player.youku.com/embed/${id}`;
+
+const openHref =
+  provider === 'bilibili'
+    ? `https://www.bilibili.com/video/${id}`
+    : provider === 'wechat'
+      ? url
+      : url;
+
+const openLabel =
+  provider === 'bilibili'
+    ? 'Open on Bilibili'
+    : provider === 'wechat'
+      ? 'Open in WeChat Channels'
+      : 'Open on Youku';
+---
+
+<figure class="space-y-3">
+  {
+    isLinkOnly && openHref ? (
+      <a
+        class="video-shell video-link-card aspect-video overflow-hidden bg-ink"
+        href={openHref}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`${title} — ${openLabel}`}
+      >
+        <span class="video-facade video-facade-static">
+          <span class="video-play" aria-hidden="true"></span>
+          <span class="video-facade-label">{openLabel}</span>
+        </span>
+      </a>
+    ) : (
+      <div
+        class="video-shell aspect-video overflow-hidden bg-ink"
+        data-video-embed
+        data-src={src}
+        data-title={title}
+      >
+        <button type="button" class="video-facade" aria-label={`Load video: ${title}`}>
+          <span class="video-play" aria-hidden="true"></span>
+          <span class="video-facade-label">Click to load</span>
+        </button>
+      </div>
+    )
+  }
+  <figcaption class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-muted">
+    <span>{title}</span>
+    {
+      openHref && (
+        <a class="text-steel hover:underline" href={openHref} target="_blank" rel="noreferrer">
+          {openLabel}
+        </a>
+      )
+    }
+  </figcaption>
+</figure>
+
+<style>
+  .video-shell {
+    position: relative;
+  }
+
+  .video-link-card {
+    display: block;
+    text-decoration: none;
+  }
+
+  .video-facade {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border: 0;
+    background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 100%);
+    color: rgba(255, 255, 255, 0.72);
+    cursor: pointer;
+  }
+
+  .video-facade-static {
+    cursor: pointer;
+  }
+
+  .video-facade:hover,
+  .video-facade:focus-visible,
+  .video-link-card:hover .video-facade,
+  .video-link-card:focus-visible .video-facade {
+    color: #fff;
+  }
+
+  .video-facade:focus-visible,
+  .video-link-card:focus-visible {
+    outline: 2px solid var(--color-steel, #5b7c99);
+    outline-offset: -2px;
+  }
+
+  .video-play {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 1.5px solid currentColor;
+    border-radius: 9999px;
+    transition: transform 0.2s ease;
+  }
+
+  .video-play::before {
+    content: '';
+    margin-left: 0.15rem;
+    border-style: solid;
+    border-width: 0.45rem 0 0.45rem 0.75rem;
+    border-color: transparent transparent transparent currentColor;
+  }
+
+  .video-facade:hover .video-play,
+  .video-facade:focus-visible .video-play,
+  .video-link-card:hover .video-play,
+  .video-link-card:focus-visible .video-play {
+    transform: scale(1.06);
+  }
+
+  .video-facade-label {
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+  }
+
+  .video-shell :global(iframe) {
+    height: 100%;
+    width: 100%;
+    border: 0;
+  }
+</style>
+
+<script>
+  function mountPlayer(shell: HTMLElement) {
+    const src = shell.dataset.src;
+    const title = shell.dataset.title || 'Video';
+    if (!src || shell.dataset.loaded === '1') return;
+
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.title = title;
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('allow', 'fullscreen; encrypted-media; picture-in-picture; autoplay');
+    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+
+    shell.dataset.loaded = '1';
+    shell.replaceChildren(iframe);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-video-embed]').forEach((shell) => {
+    const button = shell.querySelector('button');
+    button?.addEventListener('click', () => mountPlayer(shell), { once: true });
+  });
+</script>

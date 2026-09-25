@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PublicationList from '../components/PublicationList.astro';
+import { publications } from '../data/publications';
+---
+
+<BaseLayout
+  title="Publications"
+  description="Publications by Zhihao Wang on network telemetry, programmable networks, and AI for networking."
+>
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-10">
+      <h1 class="type-display text-4xl text-ink sm:text-5xl">Publications</h1>
+    </header>
+    <PublicationList items={publications} showYearHeading />
+  </div>
+</BaseLayout>

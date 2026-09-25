@@ -1,0 +1,149 @@
+---
+import type { Publication } from '../data/publications';
+
+interface Props {
+  items: Publication[];
+  showYearHeading?: boolean;
+}
+
+const { items, showYearHeading = false } = Astro.props;
+
+const grouped = showYearHeading
+  ? [...new Set(items.map((p) => p.year))]
+      .sort((a, b) => b - a)
+      .map((year) => ({ year, items: items.filter((p) => p.year === year) }))
+  : [{ year: null as number | null, items }];
+
+function linkEntries(pub: Publication) {
+  const L = pub.links;
+  if (!L) return [] as { label: string; href: string }[];
+  const out: { label: string; href: string }[] = [];
+  if (L.pdf) out.push({ label: 'PDF', href: L.pdf });
+  if (L.arxiv) out.push({ label: 'arXiv', href: L.arxiv });
+  if (L.doi) out.push({ label: 'DOI', href: L.doi });
+  if (L.code) out.push({ label: 'Code', href: L.code });
+  if (L.scholar) out.push({ label: 'Scholar', href: L.scholar });
+  return out;
+}
+
+function teaserMeta(pub: Publication) {
+  if (pub.type === 'workshop') return `Workshop · ${pub.year}`;
+  if (pub.type === 'poster') return `Poster · ${pub.year}`;
+  if (pub.type === 'preprint') return `Preprint · ${pub.year}`;
+  return String(pub.year);
+}
+---
+
+<div class="space-y-10">
+  {
+    grouped.map((group) => (
+      <section>
+        {group.year !== null && (
+          <h2 class="type-display mb-5 text-xl text-ink">{group.year}</h2>
+        )}
+        <ol class="space-y-5">
+          {group.items.map((pub) => {
+            const links = linkEntries(pub);
+            return (
+              <li class="pub-item border-t border-line pt-5">
+                <article class="flex min-w-0 gap-4 sm:gap-5">
+                  <div class="pub-teaser shrink-0">
+                    {pub.teaser ? (
+                      <img
+                        src={pub.teaser}
+                        alt=""
+                        width="200"
+                        height="120"
+                        loading="lazy"
+                        decoding="async"
+                        class="pub-teaser-img"
+                      />
+                    ) : (
+                      <div class="flex h-full w-full flex-col items-start justify-between p-3">
+                        <span class="type-display text-[0.95rem] leading-none text-ink">
+                          {pub.venueShort}
+                        </span>
+                        <span class="text-[0.65rem] leading-tight text-muted">
+                          {teaserMeta(pub)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-[1.02rem] font-medium leading-snug text-ink [overflow-wrap:anywhere]">
+                      {pub.title}
+                    </h3>
+                    <p class="mt-1.5 text-sm leading-relaxed text-ink-soft [overflow-wrap:anywhere]">
+                      {pub.authors.map((author, i) => (
+                        <span>
+                          {i > 0 ? ', ' : ''}
+                          {author === 'Zhihao Wang' ? (
+                            <strong class="font-semibold text-ink">{author}</strong>
+                          ) : (
+                            author
+                          )}
+                        </span>
+                      ))}
+                    </p>
+                    <p class="mt-1 text-sm text-muted">
+                      <em>{pub.venue}</em>
+                      <span class="text-muted/80"> · {pub.year}</span>
+                    </p>
+                    {links.length > 0 && (
+                      <p class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-steel">
+                        {links.map((link) => (
+                          <a
+                            class="underline-offset-2 hover:underline"
+                            href={link.href}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            {link.label}
+                          </a>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .pub-teaser {
+    width: 6.25rem;
+    height: 4.5rem;
+    overflow: hidden;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+  }
+
+  .pub-teaser:not(:has(img)) {
+    background: linear-gradient(
+      145deg,
+      var(--color-paper-deep) 0%,
+      color-mix(in srgb, var(--color-steel-soft) 55%, var(--color-paper)) 100%
+    );
+  }
+
+  .pub-teaser-img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: transparent;
+  }
+
+  @media (min-width: 640px) {
+    .pub-teaser {
+      width: 9rem;
+      height: 5.75rem;
+    }
+  }
+</style>

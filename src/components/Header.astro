@@ -1,0 +1,60 @@
+---
+import { site } from '../data/site';
+
+const path = Astro.url.pathname;
+---
+
+<header class="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">
+  <div class="page-pad flex h-14 items-center justify-between gap-4 sm:h-16">
+    <a href="/" class="type-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
+      {site.name}
+      <span class="ml-2 text-base font-medium text-ink-soft/80">{site.nameZh}</span>
+    </a>
+
+    <nav class="hidden items-center gap-6 md:flex" aria-label="Primary">
+      {
+        site.nav.map((item) => (
+          <a
+            href={item.href}
+            class="nav-link"
+            aria-current={path === item.href || path.startsWith(item.href) ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <details class="relative md:hidden">
+      <summary
+        class="list-none cursor-pointer rounded-sm px-2 py-1 text-sm text-ink-soft hover:text-ink"
+        aria-label="Open menu"
+      >
+        Menu
+      </summary>
+      <div
+        class="absolute right-0 mt-2 min-w-48 border border-line bg-paper p-3 shadow-sm"
+      >
+        <nav class="flex flex-col gap-2" aria-label="Mobile">
+          {
+            site.nav.map((item) => (
+              <a
+                href={item.href}
+                class="nav-link py-1"
+                aria-current={path === item.href || path.startsWith(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </details>
+  </div>
+</header>
+
+<style>
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

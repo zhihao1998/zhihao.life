@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  images: ImageMetadata[];
+  alt: string;
+  /** Crossfade interval in ms. */
+  interval?: number;
+}
+
+const { images, alt, interval = 6500 } = Astro.props;
+const slides = images;
+---
+
+{
+  slides.length > 0 && (
+    <div
+      class="hero-media absolute inset-0 overflow-hidden"
+      aria-hidden="true"
+      data-hero-slideshow
+      data-interval={interval}
+    >
+      <div class="hero-parallax absolute inset-[-12%] will-change-transform" data-hero-parallax>
+        {slides.map((src, i) => (
+          <div class:list={['hero-slide', i === 0 && 'is-active']} data-hero-slide>
+            <Image
+              src={src}
+              alt={i === 0 ? alt : ''}
+              class="h-full w-full object-cover object-center"
+              widths={[1200, 1800, 2400, 3200]}
+              sizes="100vw"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : 'auto'}
+            />
+          </div>
+        ))}
+      </div>
+      <div class="hero-veil absolute inset-0"></div>
+      {slides.length > 1 && slides.length <= 10 && (
+        <div class="hero-dots" data-hero-dots>
+          {slides.map((_, i) => (
+            <button
+              type="button"
+              class:list={['hero-dot', i === 0 && 'is-active']}
+              aria-label={`Show photograph ${i + 1}`}
+              data-hero-dot={i}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .hero-veil {
+    background:
+      linear-gradient(
+        105deg,
+        rgba(10, 12, 16, 0.88) 0%,
+        rgba(10, 12, 16, 0.78) 42%,
+        rgba(10, 12, 16, 0.62) 100%
+      ),
+      linear-gradient(to top, rgba(10, 12, 16, 0.55) 0%, transparent 42%);
+  }
+
+  .hero-parallax {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+  }
+
+  .hero-slide.is-active {
+    opacity: 1;
+  }
+
+  .hero-dots {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 2;
+    display: flex;
+    gap: 0.45rem;
+  }
+
+  .hero-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    border: 0;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition:
+      background 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .hero-dot.is-active {
+    background: rgba(255, 255, 255, 0.95);
+    transform: scale(1.15);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-parallax {
+      inset: 0;
+      transform: none;
+    }
+
+    .hero-slide {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initHero() {
+    const root = document.querySelector<HTMLElement>('[data-hero-slideshow]');
+    const layer = document.querySelector<HTMLElement>('[data-hero-parallax]');
+    if (!root) return;
+
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-hero-slide]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-hero-dot]')];
+    const interval = Number(root.dataset.interval || 6500);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let index = 0;
+    let timer: number | undefined;
+
+    const show = (next: number) => {
+      if (slides.length < 2) return;
+      index = ((next % slides.length) + slides.length) % slides.length;
+      slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+      dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    };
+
+    const play = () => {
+      window.clearInterval(timer);
+      if (reduceMotion || slides.length < 2) return;
+      timer = window.setInterval(() => show(index + 1), interval);
+    };
+
+    dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        show(Number(dot.dataset.heroDot));
+        play();
+      });
+    });
+
+    play();
+
+    if (layer && !reduceMotion) {
+      let ticking = false;
+      const update = () => {
+        const y = Math.min(window.scrollY, window.innerHeight);
+        layer.style.transform = `translate3d(0, ${y * 0.28}px, 0) scale(1.08)`;
+        ticking = false;
+      };
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+          }
+        },
+        { passive: true },
+      );
+      update();
+    }
+  }
+
+  initHero();
+  document.addEventListener('astro:page-load', initHero);
+</script>

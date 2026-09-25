@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "photoswipe/style.css";
+
+
+@theme {
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #12141a;
+  --color-ink-soft: #2a2f3a;
+  --color-muted: #5c6370;
+  --color-line: #d8dbe2;
+  --color-paper: #f2f3f5;
+  --color-paper-deep: #e6e8ed;
+  --color-steel: #1f4e5f;
+  --color-steel-soft: #d5e2e6;
+  --color-haze: rgba(18, 20, 26, 0.42);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-feature-settings: "ss01" on, "kern" on;
+  }
+
+  ::selection {
+    background: var(--color-steel-soft);
+    color: var(--color-ink);
+  }
+
+  a {
+    @apply cursor-pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-steel);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .site-shell {
+    @apply min-h-dvh flex flex-col;
+  }
+
+  .page-pad {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+    min-width: 0;
+  }
+
+  .type-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+
+  .nav-link {
+    @apply text-sm text-ink-soft/80 transition-colors duration-200 hover:text-ink;
+  }
+
+  .nav-link[aria-current="page"] {
+    @apply text-ink;
+    box-shadow: inset 0 -1px 0 var(--color-ink);
+  }
+
+  .prose-academic {
+    @apply max-w-3xl text-[1.02rem] leading-relaxed text-ink-soft;
+    overflow-wrap: break-word;
+  }
+
+  .prose-academic h2 {
+    @apply mt-12 mb-4 text-2xl text-ink first:mt-0;
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+
+  .fade-up {
+    animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .fade-up-delay {
+    animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  }
+
+  .photo-tile {
+    @apply relative overflow-hidden bg-paper-deep;
+  }
+
+  .photo-tile img {
+    @apply h-full w-full object-cover transition-transform duration-500 ease-out;
+  }
+
+  .photo-tile:hover img {
+    transform: scale(1.03);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .photo-tile:hover img {
+      transform: none;
+    }
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

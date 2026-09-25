@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AlbumGrid from '../../components/AlbumGrid.astro';
+import { albums } from '../../data/albums';
+---
+
+<BaseLayout
+  title="Portfolio"
+  description="Photography portfolio by Zhihao Wang — cities, travel, and place."
+>
+  <div class="page-pad py-14 sm:py-20">
+    <header class="mb-10">
+      <h1 class="type-display text-4xl text-ink sm:text-5xl">Portfolio</h1>
+    </header>
+    <AlbumGrid albums={albums} />
+  </div>
+</BaseLayout>

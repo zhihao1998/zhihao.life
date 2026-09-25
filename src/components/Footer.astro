@@ -1,0 +1,18 @@
+---
+import { site } from '../data/site';
+import EmailLink from './EmailLink.astro';
+---
+
+<footer class="mt-auto border-t border-line">
+  <div
+    class="page-pad flex flex-col gap-3 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between"
+  >
+    <p>© {new Date().getFullYear()} {site.name} ({site.nameZh})</p>
+    <div class="flex flex-wrap gap-4">
+      <a class="hover:text-ink" href={site.links.github}>GitHub</a>
+      <a class="hover:text-ink" href={site.links.scholar}>Google Scholar</a>
+      <a class="hover:text-ink" href={site.links.linkedin}>LinkedIn</a>
+      <EmailLink class="hover:text-ink" label="Email" />
+    </div>
+  </div>
+</footer>
