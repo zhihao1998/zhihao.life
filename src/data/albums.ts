@@ -182,14 +182,43 @@ export function getAlbum(slug: string) {
   return albums.find((a) => a.slug === slug);
 }
 
-/** Newest album covers for the home preview grid. */
-export function featuredPhotos(limit = 8) {
+/** Diverse photo pool for the home “Selected photographs” mosaic. */
+export function featuredPhotoPool(limit = 24) {
   const picks: { photo: AlbumPhoto; album: Album }[] = [];
+  const used = new Set<string>();
+
+  // Prefer one random frame per album, newest albums first.
   for (const album of albums) {
-    const photo = album.photos[0];
-    if (!photo) continue;
-    picks.push({ photo, album });
     if (picks.length >= limit) break;
+    if (album.photos.length === 0) continue;
+    const photo = album.photos[Math.floor(Math.random() * album.photos.length)]!;
+    const key = `${album.folder}/${photo.filename}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    picks.push({ photo, album });
+  }
+
+  // Fill remaining slots with extra random frames from larger albums.
+  const leftovers = albums.flatMap((album) =>
+    album.photos
+      .filter((photo) => !used.has(`${album.folder}/${photo.filename}`))
+      .map((photo) => ({ photo, album })),
+  );
+  for (let i = leftovers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [leftovers[i], leftovers[j]] = [leftovers[j]!, leftovers[i]!];
+  }
+  for (const item of leftovers) {
+    if (picks.length >= limit) break;
+    const key = `${item.album.folder}/${item.photo.filename}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    picks.push(item);
+  }
+
+  for (let i = picks.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [picks[i], picks[j]] = [picks[j]!, picks[i]!];
   }
   return picks;
 }

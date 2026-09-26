@@ -1,0 +1,19 @@
+[Unit]
+Description=zhihao.life boot deploy (publish dist, no Astro build)
+Documentation=https://zhihao.life
+After=network-online.target local-fs.target
+Wants=network-online.target
+# Run before or with nginx; we also start/reload nginx ourselves.
+Before=
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/zhihao-boot-deploy.sh
+TimeoutStartSec=600
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+[Install]
+WantedBy=multi-user.target

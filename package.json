@@ -10,7 +10,12 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:photos": "node scripts/sync-photos.mjs"
+    "sync:photos": "node scripts/sync-photos.mjs",
+    "upload:photos": "node scripts/upload-photos.mjs",
+    "deploy:remote": "node scripts/deploy-remote.mjs",
+    "deploy:dist": "node scripts/deploy-dist.mjs",
+    "deploy:photos": "node scripts/deploy-photos.mjs",
+    "install:boot-deploy": "node scripts/install-boot-deploy.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

@@ -1,8 +1,10 @@
 ---
 import { Image } from 'astro:assets';
-import { featuredPhotos } from '../data/albums';
+import { featuredPhotoPool } from '../data/albums';
 
-const picks = featuredPhotos(8);
+const SLOT_COUNT = 8;
+/** Build-time pool; client shuffles a fresh 8 into the mosaic on each visit. */
+const pool = featuredPhotoPool(24);
 ---
 
 <section class="page-pad py-16 sm:py-20">
@@ -13,14 +15,19 @@ const picks = featuredPhotos(8);
     </a>
   </div>
 
-  <div class="photo-mosaic">
+  <div class="photo-mosaic" data-featured-mosaic>
     {
-      picks.map(({ photo, album }, i) => (
-        <a href={`/portfolio/${album.slug}/`} class={`photo-tile tile-${i}`}>
+      pool.map(({ photo, album }, i) => (
+        <a
+          href={`/portfolio/${album.slug}/`}
+          class:list={['photo-tile', i < SLOT_COUNT && `tile-${i}`]}
+          data-featured-item
+          hidden={i >= SLOT_COUNT}
+        >
           <Image
             src={photo.src}
             alt={`${photo.alt} — ${album.title}`}
-            widths={[400, 800, 1200, 1600]}
+            widths={[640]}
             sizes={
               i === 0 || i === 1
                 ? '(max-width: 768px) 100vw, 50vw'
@@ -38,6 +45,43 @@ const picks = featuredPhotos(8);
     All albums
   </a>
 </section>
+
+<script>
+  const SLOT_COUNT = 8;
+
+  function shuffle<T>(items: T[]) {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j]!, items[i]!];
+    }
+    return items;
+  }
+
+  function refreshFeaturedMosaic() {
+    const root = document.querySelector<HTMLElement>('[data-featured-mosaic]');
+    if (!root) return;
+    const items = [...root.querySelectorAll<HTMLElement>('[data-featured-item]')];
+    if (items.length === 0) return;
+
+    shuffle(items);
+    items.forEach((el, i) => {
+      el.className = 'photo-tile';
+      if (i < SLOT_COUNT) {
+        el.classList.add(`tile-${i}`);
+        el.hidden = false;
+        const img = el.querySelector('img');
+        if (img) img.loading = i < 3 ? 'eager' : 'lazy';
+      } else {
+        el.hidden = true;
+      }
+      root.appendChild(el);
+    });
+    root.dataset.ready = '1';
+  }
+
+  refreshFeaturedMosaic();
+  document.addEventListener('astro:page-load', refreshFeaturedMosaic);
+</script>
 
 <style>
   /*
@@ -59,11 +103,25 @@ const picks = featuredPhotos(8);
     gap: 0.5rem;
   }
 
+  .photo-mosaic:not([data-ready]) {
+    visibility: hidden;
+  }
+
+  @media (scripting: none) {
+    .photo-mosaic:not([data-ready]) {
+      visibility: visible;
+    }
+  }
+
   .photo-tile {
     display: block;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+  }
+
+  .photo-tile[hidden] {
+    display: none !important;
   }
 
   /* Mobile: 2×5 = 10 cells, all claimed

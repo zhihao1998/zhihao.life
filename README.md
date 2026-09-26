@@ -18,10 +18,12 @@ Album folders follow `YYYYMMDD-Title` (e.g. `20250608-Malmo`). Drop a new folder
 # sync everything
 npm run sync:photos
 
-# or only some albums / cap photos per album while testing
+# or only some albums / cap photos per album while testing (never for production)
 npm run sync:photos -- --albums 20250608-Malmo,20250418-Madrid --max-per-album 8
-npm run sync:photos -- --clean   # replace local copies
+npm run sync:photos -- --clean   # replace local copies with full albums
 ```
+
+`--max-per-album` is for local smoke tests only. Production deploys (`npm run deploy:remote`) always upload the full library from `F:\Pictures\作品集`.
 
 Override the source path if needed:
 
@@ -33,11 +35,28 @@ PHOTO_SOURCE="/mnt/f/Pictures/作品集" npm run sync:photos
 
 ## Build & deploy
 
+Code history lives on GitHub (`git push`). The ECS is updated by **Workbench file sync**, not `git pull`.
+
+On the ECS itself (after code/photos are already there):
+
 ```bash
 ./deploy.sh
 ```
 
-Builds to `dist/` and rsyncs to `/var/www/zhihao.life/`. Sync photos on the build machine before deploying.
+From this machine (photos + workbench code sync + remote build):
+
+```bash
+npm run deploy:remote
+```
+
+Day-to-day new photos only (incremental):
+
+```bash
+npm run deploy:photos
+npm run deploy:photos -- --albums 20260301-Tokyo
+```
+
+Builds to `dist/` and uploads to `/var/www/zhihao.life/`.
 
 ## Content
 
@@ -49,3 +68,5 @@ Builds to `dist/` and rsyncs to `/var/www/zhihao.life/`. Sync photos on the buil
 | `src/data/news.ts` | News items |
 | `src/data/about.ts` | Education, interests, reels |
 | `scripts/sync-photos.mjs` | Copy from photography library |
+| `scripts/upload-photos.mjs` | Compress + upload albums to ECS |
+| `scripts/deploy-remote.mjs` | One-click remote deploy |

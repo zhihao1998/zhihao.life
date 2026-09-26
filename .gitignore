@@ -29,3 +29,6 @@ media/
 # Synced portfolio JPEGs (run npm run sync:photos; do not commit)
 src/assets/photos/**
 !src/assets/photos/.gitkeep
+
+# Local compress/upload staging
+.cache/
