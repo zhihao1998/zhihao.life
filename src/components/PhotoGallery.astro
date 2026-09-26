@@ -1,5 +1,5 @@
 ---
-import { getImage } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { AlbumPhoto } from '../data/albums';
 
 interface Props {
@@ -8,27 +8,21 @@ interface Props {
 
 const { photos } = Astro.props;
 
-/** One webp per frame keeps dist small enough for the 2 GiB ECS. */
+/** Lightbox master — sharper than the old 1200@70; deploy-dist chunks >350KB uploads. */
 const slides = await Promise.all(
   photos.map(async (photo) => {
     const full = await getImage({
       src: photo.src,
-      width: 1200,
+      width: 1800,
       format: 'webp',
-      quality: 70,
-    });
-    const thumb = await getImage({
-      src: photo.src,
-      width: 640,
-      format: 'webp',
-      quality: 68,
+      quality: 80,
     });
     return {
-      full: full.src,
-      thumb: thumb.src,
+      src: full.src,
       width: Number(full.attributes.width),
       height: Number(full.attributes.height),
       alt: photo.alt,
+      photo,
     };
   }),
 );
@@ -38,7 +32,7 @@ const slides = await Promise.all(
   {
     slides.map((slide, i) => (
       <a
-        href={slide.full}
+        href={slide.src}
         class="photo-tile aspect-[4/5] cursor-zoom-in"
         data-pswp-width={slide.width}
         data-pswp-height={slide.height}
@@ -47,14 +41,16 @@ const slides = await Promise.all(
         rel="noreferrer"
         aria-label={`Open ${slide.alt}`}
       >
-        <img
-          src={slide.thumb}
+        <Image
+          src={slide.photo.src}
           alt={slide.alt}
-          width={640}
-          height={Math.round((640 * slide.height) / slide.width)}
+          width={1200}
+          widths={[480, 800, 1200]}
+          sizes="(max-width: 768px) 50vw, 33vw"
+          quality={80}
+          format="webp"
           class="h-full w-full object-cover"
           loading={i < 3 ? 'eager' : 'lazy'}
-          decoding="async"
         />
       </a>
     ))
@@ -65,8 +61,12 @@ const slides = await Promise.all(
   import PhotoSwipeLightbox from 'photoswipe/lightbox';
   import 'photoswipe/style.css';
 
-  const gallery = document.querySelector('#gallery');
-  if (gallery instanceof HTMLElement) {
+  function initGallery() {
+    const gallery = document.querySelector('#gallery');
+    if (!(gallery instanceof HTMLElement)) return;
+    if (gallery.dataset.pswpInit === '1') return;
+    gallery.dataset.pswpInit = '1';
+
     const lightbox = new PhotoSwipeLightbox({
       gallery,
       children: 'a',
@@ -75,12 +75,16 @@ const slides = await Promise.all(
       loop: true,
       wheelToZoom: true,
       arrowKeys: true,
-      imageClickAction: 'zoom',
-      tapAction: 'toggle-controls',
-      padding: { top: 24, bottom: 24, left: 16, right: 16 },
+      // Advance on click/tap — zoom stays available via the UI button / pinch / wheel
+      imageClickAction: 'next',
+      tapAction: 'next',
+      padding: { top: 24, bottom: 24, left: 48, right: 48 },
     });
     lightbox.init();
   }
+
+  initGallery();
+  document.addEventListener('astro:page-load', initGallery);
 </script>
 
 <style>
@@ -93,5 +97,14 @@ const slides = await Promise.all(
   }
   .photo-tile:hover img {
     transform: scale(1.03);
+  }
+
+  /*
+    PhotoSwipe hides arrows on touch devices until a mouse is detected.
+    Force them so left/right navigation is always obvious.
+  */
+  :global(.pswp--touch .pswp__button--arrow),
+  :global(.pswp__button--arrow) {
+    visibility: visible !important;
   }
 </style>

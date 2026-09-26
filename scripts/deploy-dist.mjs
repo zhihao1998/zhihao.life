@@ -14,17 +14,20 @@ import {
   readFileSync,
   writeFileSync,
   statSync,
+  rmSync,
 } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
+import { basename, dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const INSTANCE = process.env.ECS_INSTANCE || 'i-2zealrv1ip22tasm313b';
 const WWW = '/var/www/zhihao.life';
 const SITE_DIST = '/home/wang/zhihao.life/dist';
-const MAX_UPLOAD = 350_000;
+/** Workbench OSS reliably fails above ~350–500KB; split larger assets. */
+const MAX_UPLOAD = 320_000;
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const distDir = join(rootDir, 'dist');
 const stateFile = join(rootDir, '.cache/deploy-dist-state.json');
+const chunkRoot = join(rootDir, '.cache/deploy-dist/chunks');
 
 function shellQuote(s) {
   return `'${String(s).replace(/'/g, `'\\''`)}'`;
@@ -88,25 +91,96 @@ function saveState(state) {
   writeFileSync(stateFile, JSON.stringify(state));
 }
 
+/** Astro may emit unused hashed originals; skip if never referenced in HTML/CSS/JS. */
+function referencedAssets(files) {
+  const textFiles = files.filter((f) => /\.(html|css|js|json|xml|txt|svg)$/i.test(f));
+  let blob = '';
+  for (const rel of textFiles) {
+    blob += readFileSync(join(distDir, rel), 'utf8');
+  }
+  const needed = new Set(files.filter((f) => !f.startsWith('_astro/')));
+  for (const rel of files) {
+    if (!rel.startsWith('_astro/')) continue;
+    const name = basename(rel);
+    if (blob.includes(name)) needed.add(rel);
+  }
+  return needed;
+}
+
+function splitFile(local, size) {
+  const dir = join(chunkRoot, basename(local).replace(/[^\w.-]+/g, '_'));
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  const buf = readFileSync(local);
+  const parts = [];
+  for (let off = 0, i = 0; off < size; off += MAX_UPLOAD, i++) {
+    const part = join(dir, `part.${String(i).padStart(3, '0')}`);
+    writeFileSync(part, buf.subarray(off, Math.min(off + MAX_UPLOAD, size)));
+    parts.push(part);
+  }
+  return { dir, parts };
+}
+
+function uploadOne(local, remoteDir, rel, size) {
+  if (size <= MAX_UPLOAD) {
+    workbench(['upload', local, `${remoteDir}/`, '-f', '--user-name', 'root']);
+    return;
+  }
+  const { dir, parts } = splitFile(local, size);
+  const remoteTmp = `/tmp/zhihao-chunk-${basename(rel).replace(/[^\w.-]+/g, '_')}`;
+  workbench([
+    'exec',
+    '--timeout',
+    '60',
+    '-c',
+    `rm -rf ${shellQuote(remoteTmp)} && mkdir -p ${shellQuote(remoteTmp)} ${shellQuote(remoteDir)}`,
+  ]);
+  for (const part of parts) {
+    workbench(['upload', part, `${remoteTmp}/`, '-f', '--user-name', 'root']);
+  }
+  const remoteFile = `${remoteDir}/${basename(rel)}`;
+  workbench([
+    'exec',
+    '--timeout',
+    '120',
+    '-c',
+    [
+      // Remote Cloud Assistant uses /bin/sh (dash) — no pipefail.
+      'set -eu',
+      `cat ${shellQuote(remoteTmp)}/part.* > ${shellQuote(remoteFile)}`,
+      `rm -rf ${shellQuote(remoteTmp)}`,
+      `test -s ${shellQuote(remoteFile)}`,
+    ].join(' && '),
+  ]);
+  rmSync(dir, { recursive: true, force: true });
+}
+
 function main() {
   if (!existsSync(join(distDir, 'index.html'))) {
     console.error('dist/ missing — run npm run build first');
     process.exit(1);
   }
 
-  const files = listFiles(distDir).sort((a, b) => {
-    // HTML first so portfolio counts update before heavy assets finish.
-    const ah = a.endsWith('.html') ? 0 : 1;
-    const bh = b.endsWith('.html') ? 0 : 1;
-    if (ah !== bh) return ah - bh;
-    return a.localeCompare(b);
-  });
+  const allFiles = listFiles(distDir);
+  const needed = referencedAssets(allFiles);
+  const files = allFiles
+    .filter((rel) => needed.has(rel))
+    .sort((a, b) => {
+      // HTML first so portfolio counts update before heavy assets finish.
+      const ah = a.endsWith('.html') ? 0 : 1;
+      const bh = b.endsWith('.html') ? 0 : 1;
+      if (ah !== bh) return ah - bh;
+      return a.localeCompare(b);
+    });
+  const skipped = allFiles.length - files.length;
   const state = loadState();
   const pending = files.filter((rel) => {
     const size = statSync(join(distDir, rel)).size;
     return state.done[rel] !== size;
   });
-  console.log(`dist files=${files.length} pending=${pending.length} (resumable)`);
+  console.log(
+    `dist files=${allFiles.length} upload=${files.length} skip-unref=${skipped} pending=${pending.length} (resumable)`,
+  );
 
   workbench([
     'exec',
@@ -133,13 +207,10 @@ function main() {
     const rel = pending[i];
     const local = join(distDir, rel);
     const size = statSync(local).size;
-    if (size > MAX_UPLOAD) {
-      console.warn(`SKIP too large (${(size / 1e6).toFixed(2)}MB): ${rel}`);
-      continue;
-    }
     const remoteDir = dirname(rel) === '.' ? WWW : `${WWW}/${dirname(rel)}`;
-    console.log(`  ${i + 1}/${pending.length} ${rel} (${(size / 1024).toFixed(0)}KB)`);
-    workbench(['upload', local, `${remoteDir}/`, '-f', '--user-name', 'root']);
+    const note = size > MAX_UPLOAD ? `, chunked ${(size / 1024).toFixed(0)}KB` : ` (${(size / 1024).toFixed(0)}KB)`;
+    console.log(`  ${i + 1}/${pending.length} ${rel}${note}`);
+    uploadOne(local, remoteDir, rel, size);
     state.done[rel] = size;
     uploaded++;
     if (uploaded % 5 === 0) saveState(state);
@@ -153,7 +224,7 @@ function main() {
     '180',
     '-c',
     [
-      'set -euo pipefail',
+      'set -eu',
       `rm -rf ${shellQuote(SITE_DIST)}`,
       `mkdir -p ${shellQuote(SITE_DIST)}`,
       `rsync -a ${shellQuote(WWW)}/ ${shellQuote(SITE_DIST)}/`,

@@ -116,6 +116,12 @@
       transform: none;
     }
   }
+
+  /* PhotoSwipe: keep prev/next arrows visible on touch laptops */
+  .pswp--touch .pswp__button--arrow,
+  .pswp__button--arrow {
+    visibility: visible !important;
+  }
 }
 
 @keyframes fade-up {

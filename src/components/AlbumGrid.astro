@@ -17,8 +17,11 @@ const { albums } = Astro.props;
           <Image
             src={album.cover}
             alt={`${album.title} cover`}
-            widths={[400, 800]}
+            width={1200}
+            widths={[400, 800, 1200]}
             sizes="(max-width: 640px) 100vw, 33vw"
+            quality={80}
+            format="webp"
             class="h-full w-full object-cover"
           />
         </div>

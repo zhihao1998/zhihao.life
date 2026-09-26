@@ -27,12 +27,15 @@ const pool = featuredPhotoPool(24);
           <Image
             src={photo.src}
             alt={`${photo.alt} — ${album.title}`}
-            widths={[640]}
+            width={1280}
+            widths={[640, 960, 1280]}
             sizes={
               i === 0 || i === 1
                 ? '(max-width: 768px) 100vw, 50vw'
                 : '(max-width: 768px) 50vw, 33vw'
             }
+            quality={80}
+            format="webp"
             class="h-full w-full object-cover"
             loading={i < 3 ? 'eager' : 'lazy'}
           />
